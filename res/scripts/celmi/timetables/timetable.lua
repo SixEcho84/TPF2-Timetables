@@ -375,12 +375,45 @@ function timetable.getNextConstraint(constraints, time)
         local arrSec = constraint[2]
         local arrTime = arrMin * 60 + arrSec
 
+--- neue Ermittlung der passende Abfahrtszeit
+        local depMin  = constraint[3]
+        local depSec = constraint[4]
+        local depTime = depMin * 60 + depSec
+
+        --- ist Ankunftszeit = Abfahrtszeit wird der Eintrag übersprungen
+        if arrTime ~= depTime then
+
+            --- Ist die Abfahrtszeit kleiner als Ankunftszeit addiere 3600 zur Abfahrtszeit hinzu
+            --- Hier könnte man auch fix 3600 als Wert für deppTime setzten
+            --- Wird nur ausgelöst ist die Aktuelle Zeit größer als Ankunftszeit
+            if depTime < arrTime and time % 3600 >= arrTime then
+                local deppTime = depTime + 3600
+                    if arrTime <= time % 3600 and deppTime > time % 3600 then
+                        res = {value = constraint}
+                    end
+            --- Ist die Ankunftszeit größer als Abfahrtszeit ändere die Ankunftszeit auf 0
+            --- Wird nur ausgelöst ist die Aktuelle Zeit kleiner als Abfahrtszeit
+            elseif arrTime > depTime and time % 3600 < depTime then
+                    local arrrTime = 0
+                        if arrrTime <= time % 3600 and depTime > time % 3600 then
+                            res = {value = constraint}
+                        end
+            --- Ist die Aktuelle Zeit innerhalb der Ankunkfts- und Abfahrtszeit setzte diesen Timeslot als res.value
+            else
+                if arrTime <= time % 3600 and depTime > time % 3600 then
+                    res = {value = constraint}
+                end
+            end
+         end
+        
+--[[ Differenz Vergleich deaktiviert
         local diff = timetable.getTimeDifference(arrTime, time % 3600)
         if (diff < res.diff) then
             res = {diff = diff, value = constraint}
         end
     end
 
+--]]
     return res.value
 end
 
@@ -389,6 +422,8 @@ end
 ---@param a number in seconds between in range of 0-3599 (inclusive)
 ---@param b number in seconds between in range of 0-3599 (inclusive)
 ---@return number
+    
+--[[ kein Nutzen mit der oben geänderten Ermittlung der Ankunfts-/Abfahrtszeit
 function timetable.getTimeDifference(a, b)
     local absDiff = math.abs(a - b)
     if absDiff > 1800 then
@@ -397,7 +432,6 @@ function timetable.getTimeDifference(a, b)
         return absDiff
     end
 end
-
+--]]
 
 return timetable
-
