@@ -369,42 +369,40 @@ end
 ---@param time number in seconds
 ---@return table closestConstraint example: {30,0,59,0}
 function timetable.getNextConstraint(constraints, time)
-    local res = {diff = 40000, value = nil}
+    local res = nil
     for _, constraint in pairs(constraints) do
         local arrMin = constraint[1]
         local arrSec = constraint[2]
         local arrTime = arrMin * 60 + arrSec
 
---- neue Ermittlung der passende Abfahrtszeit
         local depMin  = constraint[3]
         local depSec = constraint[4]
         local depTime = depMin * 60 + depSec
 
         --- ist Ankunftszeit = Abfahrtszeit wird der Eintrag übersprungen
         if arrTime ~= depTime then
+            local normalisedTime = time % 3600
 
-            --- Ist die Abfahrtszeit kleiner als Ankunftszeit addiere 3600 zur Abfahrtszeit hinzu
-            --- Hier könnte man auch fix 3600 als Wert für deppTime setzten
+            --- Ist die Abfahrtszeit kleiner als Ankunftszeit dann setzte depTime auf 3600
             --- Wird nur ausgelöst ist die Aktuelle Zeit größer als Ankunftszeit
-            if depTime < arrTime and time % 3600 >= arrTime then
-                local deppTime = depTime + 3600
-                    if arrTime <= time % 3600 and deppTime > time % 3600 then
-                        res = {value = constraint}
-                    end
+            if depTime < arrTime and normalisedTime >= arrTime then
+                depTime = 3600
+
             --- Ist die Ankunftszeit größer als Abfahrtszeit ändere die Ankunftszeit auf 0
             --- Wird nur ausgelöst ist die Aktuelle Zeit kleiner als Abfahrtszeit
-            elseif arrTime > depTime and time % 3600 < depTime then
-                    local arrrTime = 0
-                        if arrrTime <= time % 3600 and depTime > time % 3600 then
-                            res = {value = constraint}
-                        end
-            --- Ist die Aktuelle Zeit innerhalb der Ankunkfts- und Abfahrtszeit setzte diesen Timeslot als res.value
-            else
-                if arrTime <= time % 3600 and depTime > time % 3600 then
-                    res = {value = constraint}
-                end
+            elseif arrTime > depTime and normalisedTime < depTime then
+                    arrTime = 0
             end
-         end
+
+            --- Ist die Aktuelle Zeit innerhalb der Ankunkfts- und Abfahrtszeit setzte diesen Timeslot
+            if arrTime <= normalisedTime and depTime > normalisedTime then
+                res = constraint
+            end
+        end
+    end
+
+    return res
+end
         
 --[[ Differenz Vergleich deaktiviert
         local diff = timetable.getTimeDifference(arrTime, time % 3600)
