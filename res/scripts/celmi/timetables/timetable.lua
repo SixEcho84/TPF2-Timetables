@@ -375,7 +375,7 @@ function timetable.getNextConstraint(constraints, time)
         local arrSec = constraint[2]
         local arrTime = arrMin * 60 + arrSec
 
-        local depMin  = constraint[3]
+        local depMin = constraint[3]
         local depSec = constraint[4]
         local depTime = depMin * 60 + depSec
 
@@ -411,9 +411,10 @@ end
         end
     end
 
---]]
+
     return res.value
 end
+--]]
 
 ---Calculates the time difference between two timestamps in seconds.
 ---Considers that 59 mins is close to 0 mins.
